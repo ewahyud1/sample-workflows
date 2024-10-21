@@ -1,0 +1,115 @@
+---
+name: Workflow with condition selections | filename or environment 
+
+on:
+  workflow_dispatch:
+    inputs:
+ ###  filename selection can be used in the jobs  ###
+      filename:
+        description: |
+          select environment filename
+        type: choice
+        options:
+          - sandbox
+          - development
+          - stage
+          - production
+        default: 'sandbox'
+        required: true
+  ###  Environment selection  ###
+      environment:
+        description: |
+          Select environment option
+        type: choice
+        options:
+          - non-prod
+          - UAT
+          - production
+        default: 'UAT'
+        required: true
+    
+jobs:
+#################################################
+##### Condition using filename selections  ######
+#################################################
+  filename-sandbox:    
+    if: ${{ github.event.inputs.filename == 'sandbox' }}
+    runs-on: [linux]
+    
+    steps:
+    - name: Check out Code
+      uses: actions/checkout@v3
+    
+    - name: Displaying content of filename sandbox
+      run: |
+        cat ${{ github.event.inputs.filename }}
+
+  filename-development:    
+    if: ${{ github.event.inputs.filename == 'development' }}
+    runs-on: [linux]
+    
+    steps:
+    - name: Check out Code
+      uses: actions/checkout@v3
+    
+    - name: Displaying content of filename Development
+      run: |
+        cat ./<filepath>/${{ github.event.inputs.filename }}
+  
+  filename-stage:
+    if: ${{ github.event.inputs.filename == 'stage' }}
+    runs-on: [linux]
+    
+    steps:
+    - name: Displaying content of filename stage
+      run: |
+        cat ./<filepath>/${{ github.event.inputs.filename }}
+
+  filename-production:
+    if: ${{ github.event.inputs.filename == 'production' }}
+    runs-on: [linux]
+    
+    steps:
+    - name: Displaying content of filename production
+      run: |
+        cat ./<filepath>/${{ github.event.inputs.filename }}
+        
+
+####################################################
+##### Condition using environment selections  ######
+####################################################
+  environment-non-prod:
+    if: ${{ github.event.inputs.environment == 'non-prod' }}
+    continue-on-error: true  ###  use this to continue on/trigger the next job even if this job fails with errors
+    runs-on: [linux, self-hosted]    
+        
+    steps:      
+      - name: Check out Code
+        uses: actions/checkout@v3
+
+      - name: Execute something
+        run: <... some code here ...>
+
+  environment-UAT:
+    if: ${{ github.event.inputs.environment == 'UAT' }}
+    needs: environment-non-prod  ### dependent of the "environment-non-prod" job
+    runs-on: [linux, self-hosted]    
+        
+    steps:      
+      - name: Check out Code
+        uses: actions/checkout@v3
+
+      - name: Execute something
+        run: <... some code here ...>
+
+  environment-production:
+    if: ${{ github.event.inputs.environment == 'production' }}
+    needs: environment-UAT  ### dependent of the "environment-non-prod" job
+    runs-on: [linux, self-hosted]    
+        
+    steps:      
+      - name: Check out Code
+        uses: actions/checkout@v3
+
+      - name: Execute something
+        run: <... some code here ...>
